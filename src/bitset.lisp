@@ -5,7 +5,8 @@
 
 ;;; Bitset Type
 
-(defstruct (bitset (:constructor %make-bitset))
+(defstruct (bitset (:constructor %make-bitset)
+                    (:copier nil))  ; We provide our own copy-bitset
   "An efficient bitset backed by a bit-vector."
   (bits #* :type simple-bit-vector)
   (size 0 :type fixnum))
