@@ -7,7 +7,9 @@
 (defpackage #:cl-bitset
   (:use #:cl)
   (:export
-   ;; Bitset type and constructor
+   #:with-bitset-timing
+   #:bitset-batch-process
+   #:bitset-health-check;; Bitset type and constructor
    #:bitset
    #:make-bitset
    #:copy-bitset
