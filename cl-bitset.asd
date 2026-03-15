@@ -12,8 +12,10 @@
   :serial t
   :components ((:file "package")
                (:module "src"
-                :serial t
-                :components ((:file "bitset")))))
+                :components ((:file "package")
+                             (:file "conditions" :depends-on ("package"))
+                             (:file "types" :depends-on ("package"))
+                             (:file "cl-bitset" :depends-on ("package" "conditions" "types")))))))
 
 (asdf:defsystem #:cl-bitset/test
   :description "Tests for cl-bitset"
