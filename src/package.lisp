@@ -7,7 +7,11 @@
 (defpackage #:cl-bitset
   (:use #:cl)
   (:export
-   #:with-bitset-timing
+   #:identity-list
+   #:flatten
+   #:map-keys
+   #:now-timestamp
+#:with-bitset-timing
    #:bitset-batch-process
    #:bitset-health-check;; Bitset type and constructor
    #:bitset
