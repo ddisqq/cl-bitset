@@ -166,3 +166,139 @@
   (let ((results '()))
     (do-bitset (i bitset (nreverse results))
       (push (funcall function i) results))))
+
+;;; ============================================================================
+;;; Advanced Bitset Utilities
+;;; ============================================================================
+
+(defun bitset-find-first-set (bitset)
+  "Find index of first set bit, return NIL if none."
+  (do-bitset (i bitset nil)
+    (return i)))
+
+(defun bitset-find-last-set (bitset)
+  "Find index of last set bit, return NIL if none."
+  (let ((last nil))
+    (do-bitset (i bitset last)
+      (setf last i))))
+
+(defun bitset-clear-range (bitset start end)
+  "Clear bits in range [START, END)."
+  (loop for i from start below (min end (bitset-size bitset))
+        do (bitset-clear bitset i))
+  bitset)
+
+(defun bitset-set-range (bitset start end)
+  "Set bits in range [START, END)."
+  (loop for i from start below (min end (bitset-size bitset))
+        do (bitset-set bitset i))
+  bitset)
+
+(defun bitset-toggle-range (bitset start end)
+  "Toggle bits in range [START, END)."
+  (loop for i from start below (min end (bitset-size bitset))
+        do (bitset-toggle bitset i))
+  bitset)
+
+(defun bitset-count-range (bitset start end)
+  "Count set bits in range [START, END)."
+  (loop for i from start below (min end (bitset-size bitset))
+        count (bitset-test bitset i)))
+
+(defun bitset-any-in-range-p (bitset start end)
+  "Return T if any bit is set in range [START, END)."
+  (loop for i from start below (min end (bitset-size bitset))
+        thereis (bitset-test bitset i)))
+
+(defun bitset-all-in-range-p (bitset start end)
+  "Return T if all bits are set in range [START, END)."
+  (loop for i from start below (min end (bitset-size bitset))
+        always (bitset-test bitset i)))
+
+(defun bitset-next-set-bit (bitset index)
+  "Find next set bit starting after INDEX, return NIL if none."
+  (loop for i from (1+ index) below (bitset-size bitset)
+        when (bitset-test bitset i)
+          return i))
+
+(defun bitset-prev-set-bit (bitset index)
+  "Find previous set bit before INDEX, return NIL if none."
+  (loop for i from (1- index) downto 0
+        when (bitset-test bitset i)
+          return i))
+
+(defun bitset-nth-set-bit (bitset n)
+  "Find the Nth set bit (0-indexed), return NIL if fewer than N+1 bits set."
+  (let ((count 0))
+    (do-bitset (i bitset nil)
+      (when (= count n) (return i))
+      (incf count))))
+
+(defun bitset-intersect (bitsets)
+  "Return intersection of multiple bitsets."
+  (when (null bitsets)
+    (error "Cannot intersect empty list of bitsets"))
+  (let ((result (copy-bitset (first bitsets))))
+    (dolist (bs (rest bitsets) result)
+      (setf (bitset-bits result)
+            (bit-and (bitset-bits result)
+                     (bitset-bits bs)
+                     (bitset-bits result))))))
+
+(defun bitset-union (bitsets)
+  "Return union of multiple bitsets."
+  (when (null bitsets)
+    (error "Cannot union empty list of bitsets"))
+  (let ((result (copy-bitset (first bitsets))))
+    (dolist (bs (rest bitsets) result)
+      (setf (bitset-bits result)
+            (bit-ior (bitset-bits result)
+                     (bitset-bits bs)
+                     (bitset-bits result))))))
+
+(defun bitset-difference (a b)
+  "Return difference A - B (bits in A but not in B)."
+  (bitset-andc2 a b))
+
+(defun bitset-apply (bitset function &key (start 0) (end nil))
+  "Apply function to each bit in range, modifying bitset."
+  (let ((end-idx (or end (bitset-size bitset))))
+    (loop for i from start below (min end-idx (bitset-size bitset))
+          do (let ((bit-val (if (bitset-test bitset i) 1 0)))
+               (if (funcall function bit-val)
+                   (bitset-set bitset i)
+                   (bitset-clear bitset i))))
+    bitset))
+
+(defun bitset-fold (function bitset &optional initial)
+  "Fold function over set bit indices."
+  (let ((acc initial))
+    (do-bitset (i bitset acc)
+      (setf acc (funcall function acc i)))))
+
+(defun bitset-every-p (predicate bitset)
+  "Return T if predicate is true for every set bit."
+  (not (do-bitset (i bitset nil)
+         (unless (funcall predicate i) (return t)))))
+
+(defun bitset-some-p (predicate bitset)
+  "Return T if predicate is true for some set bit."
+  (do-bitset (i bitset nil)
+    (when (funcall predicate i) (return t))))
+
+(defun bitset-find (predicate bitset)
+  "Find first set bit that satisfies predicate, return NIL if none."
+  (do-bitset (i bitset nil)
+    (when (funcall predicate i) (return i))))
+
+(defun bitset-count-if (predicate bitset)
+  "Count set bits that satisfy predicate."
+  (let ((count 0))
+    (do-bitset (i bitset count)
+      (when (funcall predicate i) (incf count)))))
+
+(defun bitset-fill-range (bitset start end value)
+  "Fill range [START, END) with bit VALUE (0 or 1)."
+  (if (zerop value)
+      (bitset-clear-range bitset start end)
+      (bitset-set-range bitset start end)))

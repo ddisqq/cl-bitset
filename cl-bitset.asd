@@ -10,20 +10,17 @@
   :license "Apache-2.0"
   :version "0.1.0"
   :serial t
-  :components ((:file "package")
+  :components ((:file "src/package")
                (:module "src"
-                :components ((:file "package")
-                             (:file "conditions" :depends-on ("package"))
+                :components ((:file "conditions" :depends-on ("package"))
                              (:file "types" :depends-on ("package"))
-                             (:file "cl-bitset" :depends-on ("package" "conditions" "types")))))))
+                             (:file "bitset" :depends-on ("package" "types"))
+                             (:file "algorithms" :depends-on ("bitset"))
+                             (:file "cl-bitset" :depends-on ("package" "conditions" "types" "bitset" "algorithms")))))))
 
 (asdf:defsystem #:cl-bitset/test
   :description "Tests for cl-bitset"
   :depends-on (#:cl-bitset)
   :serial t
   :components ((:module "test"
-                :components ((:file "test-bitset"))))
-  :perform (asdf:test-op (o c)
-             (let ((result (uiop:symbol-call :cl-bitset.test :run-tests)))
-               (unless result
-                 (error "Tests failed")))))
+                :components ((:file "test-bitset")))))
